@@ -41,14 +41,8 @@ export async function getMarkdownFromNotionBlocks(
   config: IDocuNotionConfig,
   blocks: Array<NotionBlock>
 ): Promise<string> {
-  // Filter out child page blocks before converting to markdown because there is no case where we want the content of an actual child page to be appended to the index.md of it's category level index.md
+  // Filter out child page blocks before converting to markdown because there is no case where we want the content of an actual child page of a category level to be appended to its index.md
   const filteredBlocks = blocks.filter(block => block.type !== 'child_page');
-
-  const containsColumnList = filteredBlocks.some(block => block.type === 'column_list');
-  verbose(
-    `Column_list type detected? >> "${containsColumnList}" `
-  );
-
 
   // changes to the blocks we get from notion API
   doNotionBlockTransforms(filteredBlocks, config);
