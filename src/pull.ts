@@ -190,10 +190,6 @@ async function getPagesRecursively(
 
   const r = await getBlockChildren(pageInTheOutline.pageId);
   const pageInfo = await pageInTheOutline.getContentInfo(r);
-  verbose(`Links Page ids :${pageInfo.linksPageIdsAndOrder.length}`);
-  verbose(`Childs Page ids :${pageInfo.childPageIdsAndOrder.length}`);
-  verbose(`Has paragraphs ? > ${pageInfo.hasParagraphs}`);
-
 
   if (
     !rootLevel &&
