@@ -10,7 +10,7 @@ export function convertInternalUrl(
   context: IDocuNotionContext,
   url: string
 ): string | undefined {
-  const kGetIDFromNotionURL = /https:\/\/www\.notion\.so\S+-([a-z,0-9]+)+.*/;
+  const kGetIDFromNotionURL = /https:\/\/www\.notion\.so\/([a-z0-9]+).*/;
   const match = kGetIDFromNotionURL.exec(url);
   if (match === null) {
     warning(
