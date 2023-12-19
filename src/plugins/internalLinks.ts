@@ -78,9 +78,9 @@ function convertInternalLink(
 function convertLinkLabel(targetPage: NotionPage, text: string): string {
   // In Notion, if you just add a link to a page without linking it to any text, then in Notion
   // you see the name of the page as the text of the link. But when Notion gives us that same
-  // link, it uses "link_to_page" as the text. So we have to look up the name of the page in
+  // link, it uses "mention" as the text. So we have to look up the name of the page in
   // order to fix that.;
-  if (text !== "link_to_page") return text;
+  if (text !== "mention") return text;
   else return targetPage.nameOrTitle;
 }
 function convertLinkHref(
@@ -123,7 +123,7 @@ export const standardInternalLinkConversion: IPlugin = {
   linkModifier: {
     // from notion (or notion-md?) we get slightly different hrefs depending on whether the links is "inline"
     // (has some other text that's been turned into a link) or "raw".
-    // Raw links come in without a leading slash, e.g. [link_to_page](4a6de8c0-b90b-444b-8a7b-d534d6ec71a4)
+    // Raw links come in without a leading slash, e.g. [mention](4a6de8c0-b90b-444b-8a7b-d534d6ec71a4)
     // Inline links come in with a leading slash, e.g. [pointer to the introduction](/4a6de8c0b90b444b8a7bd534d6ec71a4)
     match: /\[([^\]]+)?\]\((?!mailto:)(\/?[^),^/]+)\)/,
     convert: convertInternalLink,
