@@ -23,7 +23,24 @@ Blocks listed under the Outline page can be of the following types:
 
 ### **Links**
 
-Because docu-notion-kira automatically identifies and removes blocks that are either child pages or links to pages located at the root level of the page. If you need to include such blocks within your content, they must be embedded within another block category, like a table or a column, or they should be accompanied by some text within the same block to trick this logic.
+Docu-notion automatically identifies and removes blocks that are either child pages or links to pages located at the root level of the page. If you need to include such blocks within your content, they must be embedded within another block type, like a table or a column, or they should be accompanied by some text within the same block to trick this logic.
+
+# Custom parsing (Plugins)
+
+Custom parsing logic can be created using plugins. See the [plugin readme](src/plugins/README.md).
+
+# Callouts ➜ Admonitions
+
+To map Notion callouts to Docusaurus admonitions, ensure the icon is for the type you want.
+
+- ℹ️ ➜ note
+- 📝➜ note
+- 💡➜ tip
+- ❗➜ info
+- ⚠️➜ caution
+- 🔥➜ danger
+
+The default admonition type, if no matching icon is found, is "note".
 
 # Setup: Docu-notion-kira + docusaurus
 
@@ -140,19 +157,3 @@ Options:
 | -i, --img-output-path <string>        |           | Path to directory where images will be stored. If this is not included, images will be placed in the same directory as the document that uses them, which then allows for localization of screenshots.             |
 | -p, --img-prefix-in-markdown <string> |           | When referencing an image from markdown, prefix with this path instead of the full img-output-path. Should be used only in conjunction with --img-output-path.                                                     |
 | -h, --help                            |           | display help for command                                                                                                                                                                                           |
-# Custom parsing (Plugins)
-
-Custom parsing logic can be created using plugins. See the [plugin readme](src/plugins/README.md).
-
-# Callouts ➜ Admonitions
-
-To map Notion callouts to Docusaurus admonitions, ensure the icon is for the type you want.
-
-- ℹ️ ➜ note
-- 📝➜ note
-- 💡➜ tip
-- ❗➜ info
-- ⚠️➜ caution
-- 🔥➜ danger
-
-The default admonition type, if no matching icon is found, is "note".
