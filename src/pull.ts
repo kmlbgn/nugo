@@ -1,5 +1,4 @@
 import * as fs from "fs-extra";
-
 import { NotionToMarkdown } from "notion-to-md";
 import { HierarchicalNamedLayoutStrategy } from "./HierarchicalNamedLayoutStrategy";
 import { LayoutStrategy } from "./LayoutStrategy";
@@ -190,10 +189,13 @@ async function getPagesRecursively(
 
   const r = await getBlockChildren(pageInTheOutline.pageId);
   const pageInfo = await pageInTheOutline.getContentInfo(r);
+  verbose(`Childs:${pageInfo.childPageIdsAndOrder.length}`);
+  verbose(`Links:${pageInfo.linksPageIdsAndOrder.length}`);
+  verbose(`hasContent:${pageInfo.hasContent}`);
 
   if (
     !rootLevel &&
-    pageInfo.hasParagraphs &&
+    pageInfo.hasContent &&
     (pageInfo.childPageIdsAndOrder.length > 0 || pageInfo.linksPageIdsAndOrder.length > 0)
   ){
     warning(`Note: The page "${pageInTheOutline.nameOrTitle}" contains both childrens and content so it should produce a level with an index page`);
@@ -236,7 +238,7 @@ async function getPagesRecursively(
   }
 
   // Simple content page are being pushed
-  if (!rootLevel && pageInfo.hasParagraphs) {
+  else if (!rootLevel && pageInfo.hasContent) {
     warning(`Note: The page "${pageInTheOutline.nameOrTitle}" is a simple content page.`);
     pages.push(pageInTheOutline);
   }
