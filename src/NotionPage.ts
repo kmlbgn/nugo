@@ -3,7 +3,6 @@
 import { GetPageResponse } from "@notionhq/client/build/src/api-endpoints";
 import { parseLinkId } from "./plugins/internalLinks";
 import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
-import { error, warning, verbose } from "./log";
 
 // Notion has 2 kinds of pages: a normal one which is just content, and what I'm calling a "database page", which has whatever properties you put on it.
 // docu-notion supports the later via links from outline pages. That is, you put the database pages in a database, then separately, in the outline, you
@@ -45,7 +44,7 @@ export class NotionPage {
     const { baseLinkId } = parseLinkId(id);
 
     const match =
-      baseLinkId === this.pageId || // from a mention.pageId, which still has the dashes
+      baseLinkId === this.pageId || // from a link_to_page.pageId, which still has the dashes
       baseLinkId === this.pageId.replaceAll("-", ""); // from inline links, which are lacking the dashes
 
     // logDebug(
@@ -250,81 +249,42 @@ export class NotionPage {
     }
   }
 
-// @@@ docu-notion original 
-///
-//   public async getContentInfo(
-//     children: ListBlockChildrenResponseResults
-//   ): Promise<{
-//     childPageIdsAndOrder: { id: string; order: number }[];
-//     linksPageIdsAndOrder: { id: string; order: number }[];
-//     hasParagraphs: boolean;
-//   }> {
-//     for (let i = 0; i < children.length; i++) {
-//       (children[i] as any).order = i;
-//       if ((children[i] as any).type === "mention") {
-//       }
-//     }
-//     return {
-//       childPageIdsAndOrder: children
-//         .filter((b: any) => b.type === "child_page")
-//         .map((b: any) => ({ id: b.id, order: b.order })),
-//       linksPageIdsAndOrder: children
-//         .filter((b: any) => b.type === "mention")
-//         .map((b: any) => ({ id: b.mention.page.id, order: b.order })),
-//       hasParagraphs: children.some(
-//         b =>
-//           (b as any).type === "paragraph" &&
-//           (b as any).paragraph.rich_text.length > 0
-//       ),
-//     };
-//   }
-
   public async getContentInfo(
     children: ListBlockChildrenResponseResults
   ): Promise<{
     childPageIdsAndOrder: { id: string; order: number }[];
     linksPageIdsAndOrder: { id: string; order: number }[];
-    hasParagraphs: boolean;
+    hasContent: boolean;
   }> {
-    const childPageIdsAndOrder: { id: string; order: number }[] = [];
-    const linksPageIdsAndOrder: { id: string; order: number }[] = [];
-    let hasParagraphs = false;
-
     for (let i = 0; i < children.length; i++) {
-      const block = children[i] as any;
-      block.order = i;
-
-      // Check if the block is a paragraph with rich_text
-      if (block.type === "paragraph" && block.paragraph.rich_text) {
-
-        // Initially set hasParagraphs to true if rich_text is not empty
-        hasParagraphs = hasParagraphs || block.paragraph.rich_text.length > 0;
-
-        // Filter to find mentions of type 'page'
-        const pageMentions = block.paragraph.rich_text.filter((element: any) => element.type === "mention" && element.mention?.type === "page");
-
-        // Filter to find empty text nodes
-        const emptyTextNodes = block.paragraph.rich_text.filter((element: any) => element.type === "text" && element.text.content.trim() === "");
-
-        // Check if there is exactly one mention and one empty text node: if so it's a link to page and should not trigger a level. 
-        // If not it's a link to page within a text and should not trigger a level.
-        if (pageMentions.length === 1 && emptyTextNodes.length === 1) {
-          linksPageIdsAndOrder.push({ id: pageMentions[0].mention.page.id, order: i });
-          hasParagraphs = false;
-          verbose(`Found a link to page with page ID: ${pageMentions[0].mention.page.id}`);
-        }
-      }
-
-      // Add child pages to the childPageIdsAndOrder array
-      if (block.type === "child_page") {
-        childPageIdsAndOrder.push({ id: block.id, order: block.order });
-      }
+      (children[i] as any).order = i;
     }
-
     return {
-      childPageIdsAndOrder,
-      linksPageIdsAndOrder,
-      hasParagraphs,
+      childPageIdsAndOrder: children
+        .filter((b: any) => b.type === "child_page")
+        .map((b: any) => ({ id: b.id, order: b.order })),
+
+      // sometimes we leave empty spaces when adding a raw link which can break detection. This test account for this case.
+      linksPageIdsAndOrder: children
+        .filter((b: any) =>
+          b.type === "paragraph" && 
+          b.paragraph.rich_text.filter((rt: any) => rt.type === "mention").length === 1 &&
+          (b.paragraph.rich_text.length === 1 || b.paragraph.rich_text.every((rt: any) => rt.type === "mention" || (rt.type === "text" && /^\s*$/.test(rt.plain_text))))
+        )
+        .map((b: any) => ({ id: b.paragraph.rich_text.find((rt: any) => rt.type === "mention").mention.page.id, order: b.order })),
+      /**
+       * hasContent checks if there's meaningful content among the blocks.
+       * `hasContent` is true if there's at least one block that is not a "child_page"
+       * and not a "paragraph" with only a single "mention" or whitespace text nodes.
+       */
+      hasContent: children.some(
+        (b: any) => 
+          b.type !== "child_page" &&
+          !(b.type === "paragraph" && 
+            (b.paragraph.rich_text.length === 0 || 
+            (b.paragraph.rich_text.filter((rt: any) => rt.type === "mention" || (rt.type === "text" && /^\s*$/.test(rt.plain_text))).length === b.paragraph.rich_text.length))
+          )
+      ),        
     };
   }
 }

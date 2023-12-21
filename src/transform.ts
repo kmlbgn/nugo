@@ -95,7 +95,7 @@ export async function getMarkdownFromNotionBlocks(
 }
 
 // operations on notion blocks before they are converted to markdown
-function doNotionBlockTransforms(
+export function doNotionBlockTransforms(
   blocks: Array<NotionBlock>,
   config: IDocuNotionConfig
 ) {
@@ -180,7 +180,7 @@ async function doTransformsOnMarkdown(
   return body;
 }
 
-async function doNotionToMarkdown(
+export async function doNotionToMarkdown(
   docunotionContext: IDocuNotionContext,
   blocks: Array<NotionBlock>
 ) {
