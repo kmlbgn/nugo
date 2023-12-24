@@ -71,14 +71,18 @@ export async function notionPull(options: DocuNotionOptions): Promise<void> {
 
   layoutStrategy = new HierarchicalNamedLayoutStrategy();
 
+  // Create output folder
   await fs.mkdir(options.markdownOutputPath, { recursive: true });
   layoutStrategy.setRootDirectoryForMarkdown(
     options.markdownOutputPath.replace(/\/+$/, "") // trim any trailing slash
   );
 
+  // Create a 'tmp' folder for custom pages
+  await fs.mkdir(options.markdownOutputPath.replace(/\/+$/, "") + '/tmp', { recursive: true });
+
   info("Connecting to Notion...");
 
-  // Do a  quick test to see if we can connect to the root so that we can give a better error than just a generic "could not find page" one.
+  // Do a quick test to see if we can connect to the root so that we can give a better error than just a generic "could not find page" one.
   try {
     await executeWithRateLimitAndRetries("retrieving root page", async () => {
       await notionClient.pages.retrieve({ page_id: options.rootPage });
@@ -99,7 +103,7 @@ export async function notionPull(options: DocuNotionOptions): Promise<void> {
   group(
     "Stage 1: walk children of the page named 'Outline', looking for pages..."
   );
-  await getPagesRecursively(options, "", options.rootPage, 0, true);
+  await getPagesRecursively(options, "", options.rootPage, options.rootPage, 0, true);
   logDebug("getPagesRecursively", JSON.stringify(pages, null, 2));
   info(`Found ${pages.length} pages`);
   endGroup();
@@ -172,54 +176,47 @@ async function outputPages(
 async function getPagesRecursively(
   options: DocuNotionOptions,
   incomingContext: string,
-  pageIdOfThisParent: string,
-  orderOfThisParent: number,
+  parentId: string,
+  pageId: string,
+  pageOrder: number,
   rootLevel: boolean
 ) {
-  const pageInTheOutline = await fromPageId(
+  const currentPage = await fromPageId(
     incomingContext,
-    pageIdOfThisParent,
-    orderOfThisParent,
+    parentId,
+    pageId,
+    pageOrder,
     true
   );
 
   info(
-    `Looking for children and links from ${incomingContext}/${pageInTheOutline.nameOrTitle}`
+    `Looking for children and links from ${incomingContext}/${currentPage.nameOrTitle}`
   );
 
-  const r = await getBlockChildren(pageInTheOutline.pageId);
-  const pageInfo = await pageInTheOutline.getContentInfo(r);
-  verbose(`Childs:${pageInfo.childPageIdsAndOrder.length}`);
-  verbose(`Links:${pageInfo.linksPageIdsAndOrder.length}`);
-  verbose(`hasContent:${pageInfo.hasContent}`);
+  const r = await getBlockChildren(currentPage.pageId);
+  const pageInfo = await currentPage.getContentInfo(r);
 
+  // TODO: delete
+  verbose(`RootLevel:${rootLevel}`);
+  verbose(`ParentID:${parentId}`);
+  verbose(`PageID:${pageId}`);
+  // verbose(`Childs:${pageInfo.childPageIdsAndOrder.length}`);
+  // verbose(`Links:${pageInfo.linksPageIdsAndOrder.length}`);
+  // verbose(`hasContent:${pageInfo.hasContent}`);
+
+  // case: root page
   if (
-    !rootLevel &&
-    pageInfo.hasContent &&
-    (pageInfo.childPageIdsAndOrder.length > 0 || pageInfo.linksPageIdsAndOrder.length > 0)
+    currentPage.pageId == parentId
   ){
-    warning(`Note: The page "${pageInTheOutline.nameOrTitle}" contains both childrens and content so it should produce a level with an index page`);
-
-    // set IsCategory flag
-    (pageInTheOutline.metadata as any).parent.IsCategory = true;
-    
-    // Add a new level for this page
-    let layoutContext = layoutStrategy.newLevel(
-      options.markdownOutputPath,
-      pageInTheOutline.order,
-      incomingContext,
-      pageInTheOutline.nameOrTitle
-    );
-
-    // Forward level for index.md and push it into the pages array
-    pageInTheOutline.layoutContext = layoutContext;
-    pages.push(pageInTheOutline);
+    warning(`Note: Scanning root page "${currentPage.nameOrTitle}".`);
+    let layoutContext = incomingContext; 
 
     // Recursively process each child page and page link
     for (const childPageInfo of pageInfo.childPageIdsAndOrder) {
       await getPagesRecursively(
         options,
         layoutContext,
+        currentPage.pageId,
         childPageInfo.id,
         childPageInfo.order,
         false
@@ -229,6 +226,7 @@ async function getPagesRecursively(
       pages.push(
         await fromPageId(
           layoutContext,
+          currentPage.pageId,
           linkPageInfo.id,
           linkPageInfo.order,
           false
@@ -237,32 +235,92 @@ async function getPagesRecursively(
     }
   }
 
-  // Simple content page are being pushed
-  else if (!rootLevel && pageInfo.hasContent) {
-    warning(`Note: The page "${pageInTheOutline.nameOrTitle}" is a simple content page.`);
-    pages.push(pageInTheOutline);
+  // case: custom page contained in the root page to be moved into Docusaurus src/pages folder, except the Outline.
+  else if (
+    currentPage.nameOrTitle != "Outline" &&
+    currentPage.parentId == options.rootPage &&
+    currentPage.pageId != options.rootPage
+    // pageInfo.hasContent
+  ){
+    warning(`Note: The page "${currentPage.nameOrTitle}" is outside the Outline, it will be stored in "src/pages" to be used as your convenience.`);
+    // Set subtype flag
+    (currentPage.metadata as any).parent.subtype = "custom";
+    pages.push(currentPage);
   }
 
-  // a normal outline page that exists just to create the level, pointing at database pages that belong in this level
+  // case: Category page with an index 
+  else if (
+    !rootLevel &&
+    pageInfo.hasContent &&
+    (pageInfo.childPageIdsAndOrder.length > 0 || pageInfo.linksPageIdsAndOrder.length > 0)
+  ){
+    warning(`Note: The page "${currentPage.nameOrTitle}" contains both childrens and content so it should produce a level with an index page.`);
+
+    // Set subtype flag
+    (currentPage.metadata as any).parent.subtype = "categoryindex";
+    
+    // Add a new level for this page
+    let layoutContext = layoutStrategy.newLevel(
+      options.markdownOutputPath,
+      currentPage.order,
+      incomingContext,
+      currentPage.nameOrTitle
+    );
+
+    // Forward level for index.md and push it into the pages array
+    currentPage.layoutContext = layoutContext;
+    pages.push(currentPage);
+
+    // Recursively process each child page and page link
+    for (const childPageInfo of pageInfo.childPageIdsAndOrder) {
+      await getPagesRecursively(
+        options,
+        layoutContext,
+        currentPage.pageId,
+        childPageInfo.id,
+        childPageInfo.order,
+        false
+      );
+    }
+    for (const linkPageInfo of pageInfo.linksPageIdsAndOrder) {
+      pages.push(
+        await fromPageId(
+          layoutContext,
+          currentPage.pageId,
+          linkPageInfo.id,
+          linkPageInfo.order,
+          false
+        )
+      );
+    }
+  }
+  // case: a simple content page
+  else if (!rootLevel && pageInfo.hasContent) {
+    warning(`Note: The page "${currentPage.nameOrTitle}" is a simple content page.`);
+    pages.push(currentPage);
+  }
+
+  // case: A category page without index that exists just to create the level in the sidebar
   else if (
     pageInfo.childPageIdsAndOrder.length ||
     pageInfo.linksPageIdsAndOrder.length
   ) {
-    warning(`Note: The page "${pageInTheOutline.nameOrTitle}" only has child pages or links to page; it's a level without index.`);
+    warning(`Note: The page "${currentPage.nameOrTitle}" only has child pages or links to page; it's a level without index.`);
     let layoutContext = incomingContext;
     // don't make a level for "Outline" page at the root
-    if (!rootLevel && pageInTheOutline.nameOrTitle !== "Outline") {
+    if (!rootLevel && currentPage.nameOrTitle !== "Outline") {
       layoutContext = layoutStrategy.newLevel(
         options.markdownOutputPath,
-        pageInTheOutline.order,
+        currentPage.order,
         incomingContext,
-        pageInTheOutline.nameOrTitle
+        currentPage.nameOrTitle
       );
     }
     for (const childPageInfo of pageInfo.childPageIdsAndOrder) {
       await getPagesRecursively(
         options,
         layoutContext,
+        currentPage.pageId,
         childPageInfo.id,
         childPageInfo.order,
         false
@@ -273,16 +331,20 @@ async function getPagesRecursively(
       pages.push(
         await fromPageId(
           layoutContext,
+          currentPage.pageId,
           linkPageInfo.id,
           linkPageInfo.order,
           false
         )
       );
     }
-  } else {
+  } 
+  
+  // case: empty pages and undefined ones
+  else {
     console.info(
       warning(
-        `Warning: The page "${pageInTheOutline.nameOrTitle}" is in the outline but appears to not have content, links to other pages, or child pages. It will be skipped.`
+        `Warning: The page "${currentPage.nameOrTitle}" is in the outline but appears to not have content, links to other pages, or child pages. It will be skipped.`
       )
     );
     ++counts.skipped_because_empty;
@@ -404,6 +466,7 @@ export function initNotionClient(notionToken: string): Client {
 }
 async function fromPageId(
   context: string,
+  parentId: string,
   pageId: string,
   order: number,
   foundDirectlyInOutline: boolean
@@ -413,6 +476,7 @@ async function fromPageId(
   //logDebug("notion metadata", JSON.stringify(metadata));
   return new NotionPage({
     layoutContext: context,
+    parentId,
     pageId,
     order,
     metadata,

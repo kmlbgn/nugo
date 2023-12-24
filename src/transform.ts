@@ -44,7 +44,7 @@ export async function getMarkdownFromNotionBlocks(
 
   // Level page index.md content filter : Keep the block if it is not a child page or only contains a mention (is a link to page)
   // Note: this will filters EVERY page. We assume child_page and mention block to be used only for the purpose of creating a new page.
-  //       If you want to use links to other pages, you'll have to put a bit of text in the block.
+  // If you want to use links to other pages, you'll have to put a bit of text in the block.
   const filteredBlocks = blocks.filter((block: any) => {
     // Filter out 'child_page' type blocks
     if (block.type === 'child_page') {
