@@ -182,11 +182,13 @@ async function getPagesRecursively(
   rootLevel: boolean
 ) {
   const currentPage = await fromPageId(
+    options,
     incomingContext,
     parentId,
     pageId,
     pageOrder,
-    true
+    true,
+    false
   );
 
   info(
@@ -208,10 +210,10 @@ async function getPagesRecursively(
   if (
     currentPage.pageId == parentId
   ){
-    warning(`Note: Scanning root page "${currentPage.nameOrTitle}".`);
+    warning(`Scan: Root page is "${currentPage.nameOrTitle}". Scanning...`);
     let layoutContext = incomingContext; 
 
-    // Recursively process each child page and page link
+    // Recursively process each child page...
     for (const childPageInfo of pageInfo.childPageIdsAndOrder) {
       await getPagesRecursively(
         options,
@@ -222,14 +224,17 @@ async function getPagesRecursively(
         false
       );
     }
+    // ... and links to page.
     for (const linkPageInfo of pageInfo.linksPageIdsAndOrder) {
       pages.push(
         await fromPageId(
+          options,
           layoutContext,
           currentPage.pageId,
           linkPageInfo.id,
           linkPageInfo.order,
-          false
+          false,
+          true
         )
       );
     }
@@ -242,7 +247,7 @@ async function getPagesRecursively(
     currentPage.pageId != options.rootPage
     // pageInfo.hasContent
   ){
-    warning(`Note: The page "${currentPage.nameOrTitle}" is outside the Outline, it will be stored in "src/pages" to be used as your convenience.`);
+    warning(`Scan: Page "${currentPage.nameOrTitle}" is outside the Outline, it will be stored in "src/pages" to be used as your convenience.`);
     // Set subtype flag
     (currentPage.metadata as any).parent.subtype = "custom";
     pages.push(currentPage);
@@ -254,7 +259,7 @@ async function getPagesRecursively(
     pageInfo.hasContent &&
     (pageInfo.childPageIdsAndOrder.length > 0 || pageInfo.linksPageIdsAndOrder.length > 0)
   ){
-    warning(`Note: The page "${currentPage.nameOrTitle}" contains both childrens and content so it should produce a level with an index page.`);
+    warning(`Scan: Page "${currentPage.nameOrTitle}" contains both childrens and content so it should produce a level with an index page.`);
 
     // Set subtype flag
     (currentPage.metadata as any).parent.subtype = "categoryindex";
@@ -285,18 +290,20 @@ async function getPagesRecursively(
     for (const linkPageInfo of pageInfo.linksPageIdsAndOrder) {
       pages.push(
         await fromPageId(
+          options,
           layoutContext,
           currentPage.pageId,
           linkPageInfo.id,
           linkPageInfo.order,
-          false
+          false,
+          true
         )
       );
     }
   }
   // case: a simple content page
   else if (!rootLevel && pageInfo.hasContent) {
-    warning(`Note: The page "${currentPage.nameOrTitle}" is a simple content page.`);
+    warning(`Scan: Page "${currentPage.nameOrTitle}" is a simple content page.`);
     pages.push(currentPage);
   }
 
@@ -305,7 +312,7 @@ async function getPagesRecursively(
     pageInfo.childPageIdsAndOrder.length ||
     pageInfo.linksPageIdsAndOrder.length
   ) {
-    warning(`Note: The page "${currentPage.nameOrTitle}" only has child pages or links to page; it's a level without index.`);
+    warning(`Scan: Page "${currentPage.nameOrTitle}" only has child pages or links to page; it's a level without index.`);
     let layoutContext = incomingContext;
     // don't make a level for "Outline" page at the root
     if (!rootLevel && currentPage.nameOrTitle !== "Outline") {
@@ -330,11 +337,13 @@ async function getPagesRecursively(
     for (const linkPageInfo of pageInfo.linksPageIdsAndOrder) {
       pages.push(
         await fromPageId(
+          options,
           layoutContext,
           currentPage.pageId,
           linkPageInfo.id,
           linkPageInfo.order,
-          false
+          false,
+          true
         )
       );
     }
@@ -465,16 +474,16 @@ export function initNotionClient(notionToken: string): Client {
   return notionClient;
 }
 async function fromPageId(
+  options: DocuNotionOptions,
   context: string,
   parentId: string,
   pageId: string,
   order: number,
-  foundDirectlyInOutline: boolean
+  foundDirectlyInOutline: boolean,
+  isLink: boolean
 ): Promise<NotionPage> {
   const metadata = await getPageMetadata(pageId);
-
-  //logDebug("notion metadata", JSON.stringify(metadata));
-  return new NotionPage({
+  let currentPage = new NotionPage({
     layoutContext: context,
     parentId,
     pageId,
@@ -482,6 +491,21 @@ async function fromPageId(
     metadata,
     foundDirectlyInOutline,
   });
+  if (isLink) {
+    if (
+      parentId == options.rootPage &&
+      pageId != options.rootPage &&
+      currentPage.nameOrTitle != "Outline"
+    ) {
+      (currentPage.metadata as any).parent.subtype = "custom";
+      warning(`Scan: Page "${currentPage.nameOrTitle}" is a link outside the Outline, it will be stored in "src/pages" to be used as your convenience.`);
+    } else {
+      warning(`Scan: Page "${currentPage.nameOrTitle}" is a link to a page.`);
+    }
+  }
+  
+  //logDebug("notion metadata", JSON.stringify(metadata));
+  return currentPage
 }
 
 // This function is copied (and renamed from modifyNumberedListObject) from notion-to-md.

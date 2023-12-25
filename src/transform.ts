@@ -51,7 +51,7 @@ export async function getMarkdownFromNotionBlocks(
       return false;
     }
   
-    // For paragraph blocks, check if they consist of a mention and an empty text node
+    // Filter out link to page blocks : check if they consist of a mention and an empty text node
     if (block.type === 'paragraph' && block.paragraph.rich_text.length === 2) {
       const [element1, element2] = block.paragraph.rich_text;
   

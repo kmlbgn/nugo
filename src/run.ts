@@ -84,7 +84,7 @@ export async function run(): Promise<void> {
   );
 
   async function moveTmpContents() {
-    const destTmpPath = "test/test";
+    const destTmpPath = "src/pages";
     const srcTmpPath = path.join(options.markdownOutputPath.replace(/\/+$/, "")+ '/tmp');
     warning(`dest:${destTmpPath}`)
     warning(`src:${srcTmpPath}`)
@@ -98,7 +98,12 @@ export async function run(): Promise<void> {
       if (fs.existsSync(destFilePath)) {
         // Prompt user for overwriting
         const overwrite = await promptUserForOverwrite(file); 
-        if (!overwrite) continue;
+        if (!overwrite) {
+        console.log(`Skipping overwrite of '${file}'`);
+        continue;
+        } else {
+          console.log(`Overwriting '${file}'`);
+        }
       }
   
       fs.moveSync(srcFilePath, destFilePath, { overwrite: true });
@@ -126,7 +131,7 @@ function promptUserForOverwrite(fileName: string) {
       output: process.stdout
     });
 
-    rl.question(`The file '${fileName}' already exists in 'src/test'. Do you want to overwrite it? (y/n) `, (answer: string) => {
+    rl.question(`The file '${fileName}' already exists in 'src/test'. Do you want to overwrite it? (y/any) `, (answer: string) => {
       resolve(answer.toLowerCase() === 'y');
       rl.close();
     });
