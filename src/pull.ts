@@ -199,9 +199,9 @@ async function getPagesRecursively(
   const pageInfo = await currentPage.getContentInfo(r);
 
   // TODO: delete
-  verbose(`RootLevel:${rootLevel}`);
-  verbose(`ParentID:${parentId}`);
-  verbose(`PageID:${pageId}`);
+  // verbose(`RootLevel:${rootLevel}`);
+  // verbose(`ParentID:${parentId}`);
+  // verbose(`PageID:${pageId}`);
   // verbose(`Childs:${pageInfo.childPageIdsAndOrder.length}`);
   // verbose(`Links:${pageInfo.linksPageIdsAndOrder.length}`);
   // verbose(`hasContent:${pageInfo.hasContent}`);

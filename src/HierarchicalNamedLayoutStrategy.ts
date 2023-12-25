@@ -41,13 +41,11 @@ export class HierarchicalNamedLayoutStrategy extends LayoutStrategy {
   if (page.subtype === PageSubType.Custom) {
     // For Custom pages, store them directly in src/pages
     path = this.rootDirectory +`/tmp/${sanitizedName}${extensionWithDot}`;
-    warning(`Custom path:${path}`)
   } else {
     
     // For all other pages, use the existing structure for Docusaurus to parse
     const context = ("/" + page.layoutContext + "/").replaceAll("//", "/");
     path = this.rootDirectory + context + sanitizedName + extensionWithDot;
-    warning(`path:${path}`)
   }
 
   return path;
