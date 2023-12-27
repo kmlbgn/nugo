@@ -138,7 +138,7 @@ async function outputPages(
   };
   for (const page of pages) {
     layoutStrategy.pageWasSeen(page);
-    const mdPath = layoutStrategy.getPathForPage(page, ".md");
+    const mdPath = layoutStrategy.getPathForPage(page, ".mdx");
 
     // most plugins should not write to disk, but those handling image files need these paths
     context.directoryContainingMarkdown = Path.dirname(mdPath);
@@ -361,7 +361,7 @@ async function getPagesRecursively(
 }
 
 function writePage(page: NotionPage, finalMarkdown: string) {
-  const mdPath = layoutStrategy.getPathForPage(page, ".md");
+  const mdPath = layoutStrategy.getPathForPage(page, ".mdx");
   verbose(`writing ${mdPath}`);
   fs.writeFileSync(mdPath, finalMarkdown, {});
   ++counts.output_normally;

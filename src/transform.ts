@@ -297,6 +297,8 @@ function getFrontMatter(page: NotionPage): string {
   frontmatter += `slug: ${page.slug ?? ""}\n`;
   if (page.keywords) frontmatter += `keywords: [${page.keywords}]\n`;
 
-  frontmatter += "---\n";
+  // TODO/enhance: display this only when needed
+  frontmatter += "import Tabs from '@theme/Tabs';\n";
+  frontmatter += "import TabItem from '@theme/TabItem';\n";
   return frontmatter;
 }
