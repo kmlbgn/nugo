@@ -250,11 +250,11 @@ function doLinkFixes(
       if (newMarkdown !== originalLinkMarkdown) {
         markdown = markdown.replace(originalLinkMarkdown, newMarkdown);
         verbose(
-          `Link parsing: plugin "${plugin.name}" transformed link: ${originalLinkMarkdown}-->${newMarkdown}`
+          `Link parsing: ["${plugin.name}"] Converted "${originalLinkMarkdown}" to "${newMarkdown}"`
         );
         return true; // the first plugin that matches and does something wins
       } else {
-        verbose(`Link parsing: plugin "${plugin.name}" did not change this url`);
+        verbose(`Link parsing: ["${plugin.name}"] URL unchanged`);
         return false;
       }
     });

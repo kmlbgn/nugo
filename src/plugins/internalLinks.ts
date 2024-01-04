@@ -61,10 +61,6 @@ function convertInternalLink(
       hrefFromNotion = hrefFromNotion.substring(lastSpecialCharIndex + 1);
   }
 
-  verbose(
-    `Link parsong: [InternalLinkPlugin] Converting ${markdownLink} to ${hrefFromNotion}`
-  );
-
   const pages = context.pages;
   // find the page where pageId matches hrefFromNotion
   const targetPage = pages.find(p => {
