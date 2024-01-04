@@ -239,7 +239,7 @@ function doLinkFixes(
     config.plugins.some(plugin => {
       if (!plugin.linkModifier) return false;
       if (plugin.linkModifier.match.exec(originalLinkMarkdown) === null) {
-        verbose(`Link parsing: plugin "${plugin.name}" did not match this url`);
+        verbose(`Link parsing: ["${plugin.name}"] Did not match this url`);
         return false;
       }
       const newMarkdown = plugin.linkModifier.convert(

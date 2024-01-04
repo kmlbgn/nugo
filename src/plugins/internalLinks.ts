@@ -62,7 +62,7 @@ function convertInternalLink(
   }
 
   verbose(
-    `[InternalLinkPlugin] Converting ${markdownLink} to ${hrefFromNotion}`
+    `Link parsong: [InternalLinkPlugin] Converting ${markdownLink} to ${hrefFromNotion}`
   );
 
   const pages = context.pages;
@@ -74,7 +74,7 @@ function convertInternalLink(
   if (!targetPage) {
     // About this situation. See https://github.com/sillsdev/docu-notion/issues/9
     warning(
-      `[InternalLinkPlugin] Could not find the target for ${hrefFromNotion}. Note that links to outline sections are not supported > https://github.com/sillsdev/docu-notion/issues/9`
+      `Link parsing: [InternalLinkPlugin] Could not find the target for ${hrefFromNotion}. Note that links to outline sections are not supported > https://github.com/sillsdev/docu-notion/issues/9`
     );
     return "**[Problem Internal Link]**";
   }
@@ -108,7 +108,7 @@ function convertLinkHref(
   const { fragmentId } = parseLinkId(url);
  // Log only if fragmentId is not an empty string
   if (fragmentId !== "") {
-    verbose(`Parsed ${url} and got Fragment ID: ${fragmentId}`);
+    verbose(`Link parsing: [InternalLinkPlugin] Parsed ${url} and got Fragment ID: ${fragmentId}`);
   }
   convertedLink += fragmentId;
 
