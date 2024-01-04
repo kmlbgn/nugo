@@ -47,7 +47,7 @@ function convertInternalLink(
   const match = linkRegExp.exec(markdownLink);
   if (match === null) {
     warning(
-      `[standardInternalLinkConversion] Could not parse link ${markdownLink}`
+      `[InternalLinkPlugin] Could not parse link ${markdownLink}`
     );
     return markdownLink;
   }
@@ -62,7 +62,7 @@ function convertInternalLink(
   }
 
   verbose(
-    `[standardInternalLinkConversion] Converting ${markdownLink} with has url ${hrefFromNotion}`
+    `[InternalLinkPlugin] Converting ${markdownLink} to ${hrefFromNotion}`
   );
 
   const pages = context.pages;
@@ -74,7 +74,7 @@ function convertInternalLink(
   if (!targetPage) {
     // About this situation. See https://github.com/sillsdev/docu-notion/issues/9
     warning(
-      `[standardInternalLinkConversion] Could not find the target for ${hrefFromNotion}. Note that links to outline sections are not supported > https://github.com/sillsdev/docu-notion/issues/9`
+      `[InternalLinkPlugin] Could not find the target for ${hrefFromNotion}. Note that links to outline sections are not supported > https://github.com/sillsdev/docu-notion/issues/9`
     );
     return "**[Problem Internal Link]**";
   }
@@ -131,7 +131,7 @@ export function parseLinkId(fullLinkId: string): {
 }
 
 export const standardInternalLinkConversion: IPlugin = {
-  name: "standard internal link conversion",
+  name: "InternalLinkPlugin",
   linkModifier: {
     // from notion (or notion-md?) we get slightly different hrefs depending on whether the links is "inline"
     // (has some other text that's been turned into a link) or "raw".
