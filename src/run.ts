@@ -42,6 +42,10 @@ export async function run(): Promise<void> {
       parseLocales,
       []
     )
+    .option("-y, --yes", 
+    "Automatically overwrite existing files without prompting"
+    )
+
     .addOption(
       new Option("-l, --log-level <level>", "Log level").choices([
         "info",
@@ -97,7 +101,7 @@ export async function run(): Promise<void> {
   
       if (fs.existsSync(destFilePath)) {
         // Prompt user for overwriting
-        const overwrite = await promptUserForOverwrite(file); 
+        const overwrite = await promptUserForOverwrite(file, options.yes); 
         if (!overwrite) {
         console.log(`Skipping overwrite of '${file}'`);
         continue;
@@ -108,6 +112,8 @@ export async function run(): Promise<void> {
   
       fs.moveSync(srcFilePath, destFilePath, { overwrite: true });
     }
+    // After moving all files, delete the tmp folder
+    fs.removeSync(srcTmpPath);
   }
 
   // pull and move custom pages
@@ -124,7 +130,13 @@ function parseLocales(value: string): string[] {
 // user prompt when custom pages already exists
 const readline = require('readline');
 
-function promptUserForOverwrite(fileName: string) {
+function promptUserForOverwrite(fileName: string, autoYes: Option) {
+  // Check if the --y flag is set in the options
+  if (autoYes) {
+    return Promise.resolve(true);
+  }
+
+  // If the --y flag is not set, continue with the user prompt
   return new Promise((resolve) => {
     const rl = readline.createInterface({
       input: process.stdin,
