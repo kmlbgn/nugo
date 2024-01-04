@@ -217,7 +217,7 @@ function doLinkFixes(
 ): string {
   const linkRegExp = /\[.*?\]\([^\)]*\)/g;
 
-  logDebug("markdown before link fixes", markdown);
+  logDebug("Markdown before link fix: ", markdown);
   let match: RegExpExecArray | null;
 
   // since we're going to make changes to the markdown,
@@ -239,7 +239,7 @@ function doLinkFixes(
     config.plugins.some(plugin => {
       if (!plugin.linkModifier) return false;
       if (plugin.linkModifier.match.exec(originalLinkMarkdown) === null) {
-        verbose(`Link parsing: ["${plugin.name}"] Did not match this url`);
+        verbose(`Link parsing: [${plugin.name}] Did not match this url`);
         return false;
       }
       const newMarkdown = plugin.linkModifier.convert(
@@ -250,11 +250,11 @@ function doLinkFixes(
       if (newMarkdown !== originalLinkMarkdown) {
         markdown = markdown.replace(originalLinkMarkdown, newMarkdown);
         verbose(
-          `Link parsing: ["${plugin.name}"] Converted "${originalLinkMarkdown}" to "${newMarkdown}"`
+          `Link parsing: [${plugin.name}] Converted "${originalLinkMarkdown}" to "${newMarkdown}"`
         );
         return true; // the first plugin that matches and does something wins
       } else {
-        verbose(`Link parsing: ["${plugin.name}"] URL unchanged`);
+        verbose(`Link parsing: [${plugin.name}] URL unchanged`);
         return false;
       }
     });
