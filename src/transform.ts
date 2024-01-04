@@ -215,7 +215,7 @@ function doLinkFixes(
   markdown: string,
   config: IDocuNotionConfig
 ): string {
-  const linkRegExp = /\[.*\]\([^\)]*\)/g;
+  const linkRegExp = /\[.*?\]\([^\)]*\)/g;
 
   logDebug("markdown before link fixes", markdown);
   let match: RegExpExecArray | null;
@@ -230,7 +230,7 @@ function doLinkFixes(
     const originalLinkMarkdown = match[0];
 
     verbose(
-      `Checking to see if a plugin wants to modify "${originalLinkMarkdown}" `
+      `Link parsing: Checking "${originalLinkMarkdown}"`
     );
 
     // We only use the first plugin that matches and makes a change to the link.
@@ -239,7 +239,7 @@ function doLinkFixes(
     config.plugins.some(plugin => {
       if (!plugin.linkModifier) return false;
       if (plugin.linkModifier.match.exec(originalLinkMarkdown) === null) {
-        verbose(`plugin "${plugin.name}" did not match this url`);
+        verbose(`Link parsing: plugin "${plugin.name}" did not match this url`);
         return false;
       }
       const newMarkdown = plugin.linkModifier.convert(
@@ -250,11 +250,11 @@ function doLinkFixes(
       if (newMarkdown !== originalLinkMarkdown) {
         markdown = markdown.replace(originalLinkMarkdown, newMarkdown);
         verbose(
-          `plugin "${plugin.name}" transformed link: ${originalLinkMarkdown}-->${newMarkdown}`
+          `Link parsing: plugin "${plugin.name}" transformed link: ${originalLinkMarkdown}-->${newMarkdown}`
         );
         return true; // the first plugin that matches and does something wins
       } else {
-        verbose(`plugin "${plugin.name}" did not change this url`);
+        verbose(`Link parsing: plugin "${plugin.name}" did not change this url`);
         return false;
       }
     });
@@ -296,7 +296,10 @@ function getFrontMatter(page: NotionPage): string {
   frontmatter += `sidebar_position: ${page.order}\n`;
   frontmatter += `slug: ${page.slug ?? ""}\n`;
   if (page.keywords) frontmatter += `keywords: [${page.keywords}]\n`;
+  frontmatter += "---\n\n";
 
-  frontmatter += "---\n";
+  // TODO/enhance: display this only when needed
+  frontmatter += "import Tabs from '@theme/Tabs';\n";
+  frontmatter += "import TabItem from '@theme/TabItem';\n";
   return frontmatter;
 }
