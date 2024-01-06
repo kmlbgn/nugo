@@ -1,9 +1,11 @@
-import { NotionToMarkdown } from "notion-to-md";
 import { NotionBlock } from "../types";
-import { IPlugin } from "./pluginTypes";
+import { IDocuNotionContext, IPlugin } from "./pluginTypes";
+import { doNotionToMarkdown } from "../transform";
+import { warning } from "../log";
+
 
 async function notionColumnListToTabs(
-  notionToMarkdown: NotionToMarkdown,
+  docunotionContext: IDocuNotionContext,
   getBlockChildren: (id: string) => Promise<NotionBlock[]>,
   block: NotionBlock
 ): Promise<string> {
@@ -25,12 +27,13 @@ async function notionColumnListToTabs(
       }
     }
 
-    const markdownContent = await Promise.all(
-      columnChildren.slice(1).map(
-        async child => await notionToMarkdown.blockToMarkdown(child)
-      )
-    );
-    const content = markdownContent.join("\n\n");
+    // const markdownContent = await Promise.all(
+    //   columnChildren.map(
+    //     async child => await docunotionContext.notionToMarkdown.blockToMarkdown(child)
+    //   )
+    // );
+    // const content = markdownContent.join("\n\n");
+    const content = await doNotionToMarkdown(docunotionContext, columnChildren);
 
     return `<TabItem value="${label.toLowerCase()}" label="${label}">\n\n${content}\n\n</TabItem>`;
   });
@@ -46,7 +49,7 @@ export const standardColumnListTransformer: IPlugin = {
       type: "column_list",
       getStringFromBlock: (context, block) =>
         notionColumnListToTabs(
-          context.notionToMarkdown,
+          context,
           context.getBlockChildren,
           block
         ),

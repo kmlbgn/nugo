@@ -198,14 +198,6 @@ async function getPagesRecursively(
   const r = await getBlockChildren(currentPage.pageId);
   const pageInfo = await currentPage.getContentInfo(r);
 
-  // TODO: delete
-  // verbose(`RootLevel:${rootLevel}`);
-  // verbose(`ParentID:${parentId}`);
-  // verbose(`PageID:${pageId}`);
-  // verbose(`Childs:${pageInfo.childPageIdsAndOrder.length}`);
-  // verbose(`Links:${pageInfo.linksPageIdsAndOrder.length}`);
-  // verbose(`hasContent:${pageInfo.hasContent}`);
-
   // case: root page
   if (
     currentPage.pageId == parentId
