@@ -1,30 +1,30 @@
 import * as Cosmic from "cosmiconfig";
-import defaultConfig from "./default.docunotion.config";
-import { error, verbose } from "../log";
+import defaultConfig from "./default.nugo.config";
+import { error, verbose, warning } from "../log";
 import { TypeScriptLoader } from "cosmiconfig-typescript-loader";
 import { IPlugin } from "../plugins/pluginTypes";
 import { exit } from "process";
 
-export type IDocuNotionConfig = {
+export type INugoConfig = {
   plugins: IPlugin[];
 };
 
 // read the plugins from the config file
 // and add them to the map
-export async function loadConfigAsync(): Promise<IDocuNotionConfig> {
-  let config: IDocuNotionConfig = defaultConfig;
+export async function loadConfigAsync(): Promise<INugoConfig> {
+  let config: INugoConfig = defaultConfig;
   try {
-    const cosmic = Cosmic.cosmiconfig("docu-notion", {
+    const cosmic = Cosmic.cosmiconfig("nugo", {
       loaders: {
         ".ts": TypeScriptLoader(),
       },
-      searchPlaces: [`docu-notion.config.ts`],
+      searchPlaces: [`nugo.config.ts`],
     });
     const found = await cosmic.search();
     if (found) {
       verbose(`Loading config from ${found.filepath}`);
     } else {
-      verbose(`Did not find configuration file, using defaults.`);
+      verbose(`Did not find any configuration file, using default configs only.`);
     }
 
     const pluginsWithInitializers = found?.config?.plugins?.filter(
@@ -50,6 +50,6 @@ export async function loadConfigAsync(): Promise<IDocuNotionConfig> {
     error(e.message);
     exit(1);
   }
-  verbose(`Active plugins: [${config.plugins.map(p => p.name).join(", ")}]`);
+  warning(`Active plugins: [${config.plugins.map(p => p.name).join(", ")}]`);
   return config;
 }

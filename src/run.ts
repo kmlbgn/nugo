@@ -8,9 +8,9 @@ import path from "path";
 export async function run(): Promise<void> {
   const pkg = require("../package.json");
   // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-  console.log(`docu-notion version ${pkg.version}`);
+  console.log(`nugo version ${pkg.version}`);
 
-  program.name("docu-notion").description("");
+  program.name("nugo").description("");
   program.usage("-n <token> -r <root> [options]");
   program
     .requiredOption(
@@ -23,13 +23,8 @@ export async function run(): Promise<void> {
     )
     .option(
       "-m, --markdown-output-path  <string>",
-      "Root of the hierarchy for md files. WARNING: docu-notion will delete files from this directory. Note also that if it finds localized images, it will create an i18n/ directory as a sibling.",
+      "Root of the hierarchy for md files. WARNING: nugo will delete files from this directory. Note also that if it finds localized images, it will create an i18n/ directory as a sibling.",
       "./docs"
-    )
-    .option(
-      "--css-output-directory  <string>",
-      "docu-notion has a docu-notion-styles.css file that you will need to use to get things like notion columns to look right. This option specifies where that file should be copied to.",
-      "./css"
     )
     .option(
       "-t, --status-tag  <string>",
@@ -69,23 +64,6 @@ export async function run(): Promise<void> {
   const options = program.opts();
   const safeOptions = { ...options, notionToken: 'REDACTED' }; // Don't console log notion token for safety
   console.log(JSON.stringify(safeOptions)); 
-
-  // copy in the this version of the css needed to make columns (and maybe other things?) work
-  let pathToCss = "";
-  try {
-    pathToCss = require.resolve(
-      "docu-notion-kira/dist/docu-notion-styles.css"
-    );
-  } catch (e) {
-    // when testing from the docu-notion project itself:
-    pathToCss = "./src/css/docu-notion-styles.css";
-  }
-  // make any missing parts of the path exist
-  fs.ensureDirSync(program.opts().cssOutputDirectory);
-  fs.copyFileSync(
-    pathToCss,
-    path.join(program.opts().cssOutputDirectory, "docu-notion-styles.css")
-  );
 
   async function moveTmpContents() {
     const destTmpPath = "src/pages";

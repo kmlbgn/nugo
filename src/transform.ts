@@ -1,17 +1,17 @@
 import chalk from "chalk";
 import {
-  IDocuNotionContext,
+  INugoContext,
   IRegexMarkdownModification,
 } from "./plugins/pluginTypes";
 import { error, info, logDebug, logDebugFn, verbose, warning } from "./log";
 import { NotionPage } from "./NotionPage";
-import { IDocuNotionConfig } from "./config/configuration";
+import { INugoConfig } from "./config/configuration";
 import { NotionBlock } from "./types";
 import { executeWithRateLimitAndRetries } from "./pull";
 
 export async function getMarkdownForPage(
-  config: IDocuNotionConfig,
-  context: IDocuNotionContext,
+  config: INugoConfig,
+  context: INugoContext,
   page: NotionPage
 ): Promise<string> {
   info(
@@ -62,8 +62,8 @@ export async function getMarkdownForPage(
 
 // this is split off from getMarkdownForPage so that unit tests can provide the block contents
 export async function getMarkdownFromNotionBlocks(
-  context: IDocuNotionContext,
-  config: IDocuNotionConfig,
+  context: INugoContext,
+  config: INugoConfig,
   blocks: Array<NotionBlock>
 ): Promise<string> {
 
@@ -98,7 +98,7 @@ export async function getMarkdownFromNotionBlocks(
 // operations on notion blocks before they are converted to markdown
 export function doNotionBlockModifications(
   blocks: Array<NotionBlock>,
-  config: IDocuNotionConfig
+  config: INugoConfig
 ) {
   for (const block of blocks) {
     config.plugins.forEach(plugin => {
@@ -114,8 +114,8 @@ export function doNotionBlockModifications(
 
 // simple regex-based tweaks. These are usually related to docusaurus
 async function doTransformsOnMarkdown(
-  context: IDocuNotionContext,
-  config: IDocuNotionConfig,
+  context: INugoContext,
+  config: INugoConfig,
   input: string
 ) {
   const regexMods: IRegexMarkdownModification[] = config.plugins
@@ -183,14 +183,14 @@ async function doTransformsOnMarkdown(
 }
 
 export async function doNotionToMarkdown(
-  docunotionContext: IDocuNotionContext,
+  nugoContext: INugoContext,
   blocks: Array<NotionBlock>
 ) {
   let mdBlocks: any;
   await executeWithRateLimitAndRetries(
     "notionToMarkdown.blocksToMarkdown",
     async () => {
-      mdBlocks = await docunotionContext.notionToMarkdown.blocksToMarkdown(
+      mdBlocks = await nugoContext.notionToMarkdown.blocksToMarkdown(
         // We need to provide a copy of blocks.
         // Calling blocksToMarkdown can modify the values in the blocks. If it does, and then
         // we have to retry, we end up retrying with the modified values, which
@@ -203,7 +203,7 @@ export async function doNotionToMarkdown(
   );
 
   const markdown =
-    docunotionContext.notionToMarkdown.toMarkdownString(mdBlocks).parent || "";
+    nugoContext.notionToMarkdown.toMarkdownString(mdBlocks).parent || "";
   return markdown;
 }
 
@@ -213,9 +213,9 @@ export async function doNotionToMarkdown(
 // Raw links come in without a leading slash, e.g. [mention](4a6de8c0-b90b-444b-8a7b-d534d6ec71a4)
 // Inline links come in with a leading slash, e.g. [pointer to the introduction](/4a6de8c0b90b444b8a7bd534d6ec71a4)
 function doLinkFixes(
-  context: IDocuNotionContext,
+  context: INugoContext,
   markdown: string,
-  config: IDocuNotionConfig
+  config: INugoConfig
 ): string {
   const linkRegExp = /\[.*?\]\([^\)]*\)/g;
 
@@ -266,8 +266,8 @@ function doLinkFixes(
 
 // overrides for the conversions that notion-to-md does
 function registerNotionToMarkdownCustomTransforms(
-  config: IDocuNotionConfig,
-  docunotionContext: IDocuNotionContext
+  config: INugoConfig,
+  nugoContext: INugoContext
 ) {
   config.plugins.forEach(plugin => {
     if (plugin.notionToMarkdownTransforms) {
@@ -276,14 +276,14 @@ function registerNotionToMarkdownCustomTransforms(
           "registering custom transform",
           `${plugin.name} for ${transform.type}`
         );
-        docunotionContext.notionToMarkdown.setCustomTransformer(
+        nugoContext.notionToMarkdown.setCustomTransformer(
           transform.type,
           (block: any) => {
             logDebug(
               "notion to MD conversion of ",
               `${transform.type} with plugin: ${plugin.name}`
             );
-            return transform.getStringFromBlock(docunotionContext, block);
+            return transform.getStringFromBlock(nugoContext, block);
           }
         );
       });

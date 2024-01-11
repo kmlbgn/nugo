@@ -1,12 +1,12 @@
 import { ListBlockChildrenResponseResult } from "notion-to-md/build/types";
 import { NotionPage } from "../NotionPage";
 import { NotionToMarkdown } from "notion-to-md";
-import { DocuNotionOptions } from "../pull";
+import { NugoOptions } from "../pull";
 import { LayoutStrategy } from "../LayoutStrategy";
-import { ICounts, IDocuNotionConfig, NotionBlock } from "../index";
+import { ICounts, INugoConfig, NotionBlock } from "../index";
 
 type linkConversionFunction = (
-  context: IDocuNotionContext,
+  context: INugoContext,
   markdownLink: string
 ) => string;
 
@@ -21,7 +21,7 @@ export type IPlugin = {
   notionToMarkdownTransforms?: {
     type: string;
     getStringFromBlock: (
-      context: IDocuNotionContext,
+      context: INugoContext,
       block: NotionBlock
     ) => string | Promise<string>;
   }[];
@@ -35,7 +35,7 @@ export type IPlugin = {
   // simple regex replacements on the markdown output
   regexMarkdownModifications?: IRegexMarkdownModification[];
 
-  // Allow a plugin to perform an async operation at the start of docu-notion.
+  // Allow a plugin to perform an async operation at the start of nugo.
   // Notice that the plugin itself is given, so you can add things to it.
   init?(plugin: IPlugin): Promise<void>;
 };
@@ -47,7 +47,7 @@ export type IRegexMarkdownModification = {
   replacementPattern?: string;
   // Instead of a pattern, you can use this if you have to ask a server somewhere for help in getting the new markdown
   getReplacement?(
-    context: IDocuNotionContext,
+    context: INugoContext,
     match: RegExpExecArray
   ): Promise<string>;
   // normally, anything in code blocks is will be ignored. If you want to make changes inside of code blocks, set this to true.
@@ -61,15 +61,15 @@ export type IRegexMarkdownModification = {
 
 export type ICustomNotionToMarkdownConversion = (
   block: ListBlockChildrenResponseResult,
-  context: IDocuNotionContext
+  context: INugoContext
 ) => () => Promise<string>;
 
 export type IGetBlockChildrenFn = (id: string) => Promise<NotionBlock[]>;
 
-export type IDocuNotionContext = {
-  config: IDocuNotionConfig,
+export type INugoContext = {
+  config: INugoConfig,
   layoutStrategy: LayoutStrategy;
-  options: DocuNotionOptions;
+  options: NugoOptions;
   getBlockChildren: IGetBlockChildrenFn;
   notionToMarkdown: NotionToMarkdown;
   directoryContainingMarkdown: string;
@@ -78,6 +78,7 @@ export type IDocuNotionContext = {
   pages: NotionPage[];
   counts: ICounts;
 
+  // TODO: delete, Hugo doesnt support embedded js >> 
   // If the output is creating things like react elements, you can append their import definitions
   // to this array so they get added to the page.
   // e.g. context.imports.push(`import ReactPlayer from "react-player";`);

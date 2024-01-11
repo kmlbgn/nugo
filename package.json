@@ -1,9 +1,6 @@
 {
   "scripts": {
-    "sync": "rsync -av --delete docs/ ../docs.kira.network/docs/",
-    "test": "vitest",
-    "build": "npm run test -- --run && tsc && cp ./src/css/*.css dist/ && echo Build successful",
-    "build-only": "tsc && cp ./src/css/*.css dist/",
+    "build": "tsc",
     "clean": "rimraf ./dist/",
     "semantic-release": "semantic-release",
     "cmdhelp": "ts-node src/index.ts",
@@ -67,24 +64,34 @@
     "vite": "^4.2.1",
     "vitest": "^0.30.1"
   },
-  "name": "docu-notion-kira",
-  "description": "Download Notion pages as markdown and image files, preserving hierarchy and enabling workflow properties. Works with Docusaurus.",
+  "name": "nugo",
+  "description": "Nugo converts your Notion content into Hugo-ready Markdown, preserving structure hierarchy and enabling workflow management.",
   "license": "MIT",
   "author": {
-    "name": "KIRA Network",
+    "name": "kmlbgn for KIRA Network",
     "email": "hello@kira.network",
     "url": "https://kira.network"
   },
   "keywords": [
-    "docusaurus",
+    "hugo",
     "notion",
     "markdown",
-    "documentation"
-  ],
+    "documentation",
+    "content-management",
+    "static-site-generator",
+    "notion-api",
+    "site-building",
+    "mdx-converter",
+    "documentation-tool",
+    "notion-to-markdown",
+    "hugo-integration",
+    "web-development",
+    "markdown-generator"
+  ],  
   "bugs": {
-    "url": "https://github.com/KiraCore/docu-notion-kira/issues"
+    "url": "https://github.com/kmlbgn/nugo/issues"
   },
-  "homepage": "https://github.com/KiraCore/docu-notion-kira#readme",
+  "homepage": "https://github.com/kmlbgn/nugo#readme",
   "main": "./dist/index.js",
   "bin": "dist/index.js",
   "files": [
@@ -94,6 +101,6 @@
     "access": "public"
   },
   "volta": {
-    "node": "18.16.0"
+    "node": "21.4.0"
   }
 }

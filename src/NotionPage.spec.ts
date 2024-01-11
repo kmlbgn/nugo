@@ -79,7 +79,7 @@ describe("NotionPage", () => {
         },
       },
     },
-    url: "https://www.notion.so/Site-docu-notion-PAGEID",
+    url: "https://www.notion.so/Site-nugo-PAGEID",
   };
 
   describe("getPlainTextProperty", () => {

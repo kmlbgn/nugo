@@ -1,11 +1,11 @@
 # Description
-KIRA's documentation system integrates with docu-notion-kira, a forked version of [docu-notion](https://github.com/sillsdev/docu-notion) tailored for Kira Network. 
+KIRA's documentation system integrates with nugo, a forked version of [nugo](https://github.com/sillsdev/nugo) tailored for Kira Network. 
 
-Docu-notion allows the use of Notion as the primary editing platform to produce content suitable for static site generators; Docusaurus in this case. This combination meets several challenging requirements, such as automatique deployment, editing workflow features, localization support via Crowdin, and capabilities for both online and offline distribution. Future plans include adding versioning capabilities.
+nugo allows the use of Notion as the primary editing platform to produce content suitable for static site generators; Docusaurus in this case. This combination meets several challenging requirements, such as automatique deployment, editing workflow features, localization support via Crowdin, and capabilities for both online and offline distribution. Future plans include adding versioning capabilities.
 
 # How It Works ?
 
-Docu-notion fetches content from a provided Notion root page and produce a structured folder of markdown-base files of its content. The root page has two main components:
+nugo fetches content from a provided Notion root page and produce a structured folder of markdown-base files of its content. The root page has two main components:
 
 1. **The Database (Optional)** - This is where the documentation pages are stored. They include content and are equipped with workflow properties to facilitate a Kanban-style management process where pages can have metadata that can be leveraged and are published according to their ‘status’.
 2. **The Outline Page (Mandatory)** - This is a central Notion page that organizes content hierarchically. It serves as the foundation of the documentation structure. The arrangement of sub-pages within the Outline is directly reflected in the final documentation site and its sidebar navigation. These sub-pages should link back to the relevant documents housed in the database.
@@ -23,7 +23,7 @@ Blocks listed under the Outline page can be of the following types:
 
 ### **Links**
 
-Docu-notion automatically identifies and removes blocks that are either child pages or links to pages located at the root level of the page. If you need to include such blocks within your content, they must be embedded within another block type, like a table or a column, or they should be accompanied by some text within the same block to trick this logic.
+nugo automatically identifies and removes blocks that are either child pages or links to pages located at the root level of the page. If you need to include such blocks within your content, they must be embedded within another block type, like a table or a column, or they should be accompanied by some text within the same block to trick this logic.
 
 # **Custom Pages**
 
@@ -49,7 +49,7 @@ To map Notion callouts to Docusaurus admonitions, ensure the icon is for the typ
 
 The default admonition type, if no matching icon is found, is "note".
 
-# Setup: Docu-notion-kira + docusaurus
+# Setup: nugo + docusaurus
 
 #### Host specs:
 
@@ -125,17 +125,17 @@ Ubuntu 20.04
     export DOCU_NOTION_SAMPLE_ROOT_PAGE=[***]
     export DOCU_NOTION_INTEGRATION_TOKEN=[***]
     ```
-  * Go to the root page and add docu-notion-kira integration. This page should have, as direct children, "Outline" (required) and "Database" (optional) pages. Follow these instructions. Source: [Notion integration](https://developers.notion.com/docs/create-a-notion-integration#give-your-integration-page-permissions)
+  * Go to the root page and add nugo integration. This page should have, as direct children, "Outline" (required) and "Database" (optional) pages. Follow these instructions. Source: [Notion integration](https://developers.notion.com/docs/create-a-notion-integration#give-your-integration-page-permissions)
 
 3. **Install Dependencies:**
   ```bash
   npm install
   ```
 
-4. **Parse Pages with docu-notion:**
+4. **Parse Pages with nugo:**
 
   ```bash
-  npx docu-notion-kira -n $DOCU_NOTION_INTEGRATION_TOKEN -r $DOCU_NOTION_SAMPLE_ROOT_PAGE
+  npx nugo -n $DOCU_NOTION_INTEGRATION_TOKEN -r $DOCU_NOTION_SAMPLE_ROOT_PAGE
   ```
 
 ## Starting Docusaurus Server
@@ -147,9 +147,9 @@ Ubuntu 20.04
   ```
   * Source [Docusaurus Intallation Guide](https://docusaurus.io/docs/installation)
 
-# Docu-notion Command line
+# nugo Command line
 
-Usage: docu-notion-kira -n <token> -r <root> [options]
+Usage: nugo -n <token> -r <root> [options]
 
 Options:
 

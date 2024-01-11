@@ -5,15 +5,15 @@ import { NotionPage } from "./NotionPage";
 
 import { getMarkdownFromNotionBlocks } from "./transform";
 
-import { IDocuNotionContext } from "./plugins/pluginTypes";
+import { INugoContext } from "./plugins/pluginTypes";
 import { convertInternalUrl } from "./plugins/internalLinks";
 
 import { initNotionClient } from "./pull";
 import { NotionBlock } from "./types";
 
-import { IDocuNotionConfig } from "./config/configuration";
+import { INugoConfig } from "./config/configuration";
 
-import defaultConfig from "./config/default.docunotion.config";
+import defaultConfig from "./config/default.nugo.config";
 
 test("Latex Rendering", async () => {
   const pages = new Array<NotionPage>();
@@ -28,9 +28,9 @@ test("Latex Rendering", async () => {
 
   const layoutStrategy = new HierarchicalNamedLayoutStrategy();
 
-  const config: IDocuNotionConfig = defaultConfig;
+  const config: INugoConfig = defaultConfig;
 
-  const context: IDocuNotionContext = {
+  const context: INugoContext = {
     getBlockChildren: (id: string) => {
       return new Promise<NotionBlock[]>(resolve =>
         resolve(new Array<NotionBlock>())

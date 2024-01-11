@@ -1,17 +1,17 @@
 import { Client } from "@notionhq/client";
 import { GetPageResponse } from "@notionhq/client/build/src/api-endpoints";
 import { NotionToMarkdown } from "notion-to-md";
-import { IDocuNotionContext } from "./pluginTypes";
+import { INugoContext } from "./pluginTypes";
 import { HierarchicalNamedLayoutStrategy } from "../HierarchicalNamedLayoutStrategy";
 import { NotionPage } from "../NotionPage";
 import { getMarkdownFromNotionBlocks } from "../transform";
-import { IDocuNotionConfig } from "../config/configuration";
+import { INugoConfig } from "../config/configuration";
 import { NotionBlock } from "../types";
-import { convertInternalUrl } from "./internalLinks";
+import { convertInternalUrl } from "./default/internalLinks";
 import { numberChildrenIfNumberedList } from "../pull";
 
 export async function blocksToMarkdown(
-  config: IDocuNotionConfig,
+  config: INugoConfig,
   blocks: NotionBlock[],
   pages?: NotionPage[],
   // Notes on children:
@@ -32,7 +32,7 @@ export async function blocksToMarkdown(
   //   console.log(pages[0]);
   //   console.log(pages[0].matchesLinkId);
   // }
-  const docunotionContext: IDocuNotionContext = {
+  const nugoContext: INugoContext = {
     config: config,
     notionToMarkdown: notionToMD,
     getBlockChildren: (id: string) => {
@@ -44,7 +44,7 @@ export async function blocksToMarkdown(
       });
     },
     convertNotionLinkToLocalDocusaurusLink: (url: string) => {
-      return convertInternalUrl(docunotionContext, url);
+      return convertInternalUrl(nugoContext, url);
     },
     imports: [],
 
@@ -91,10 +91,10 @@ export async function blocksToMarkdown(
 
   if (pages && pages.length) {
     console.log(pages[0].matchesLinkId);
-    console.log(docunotionContext.pages[0].matchesLinkId);
+    console.log(nugoContext.pages[0].matchesLinkId);
   }
   const r = await getMarkdownFromNotionBlocks(
-    docunotionContext,
+    nugoContext,
     config,
     blocks
   );
@@ -237,7 +237,7 @@ export function makeSamplePageObject(options: {
 }
 
 export async function oneBlockToMarkdown(
-  config: IDocuNotionConfig,
+  config: INugoConfig,
   block: object,
   targetPage?: NotionPage
 ): Promise<string> {

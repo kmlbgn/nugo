@@ -15,7 +15,7 @@ import {
   verbose,
   warning,
 } from "./log";
-import { IDocuNotionContext } from "./plugins/pluginTypes";
+import { INugoContext } from "./plugins/pluginTypes";
 import { getMarkdownForPage } from "./transform";
 import {
   BlockObjectResponse,
@@ -25,12 +25,12 @@ import {
 import { RateLimiter } from "limiter";
 import { Client, isFullBlock } from "@notionhq/client";
 import { exit } from "process";
-import { IDocuNotionConfig, loadConfigAsync } from "./config/configuration";
+import { INugoConfig, loadConfigAsync } from "./config/configuration";
 import { NotionBlock } from "./types";
-import { convertInternalUrl } from "./plugins/internalLinks";
+import { convertInternalUrl } from "./plugins/default/internalLinks";
 import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
 
-export type DocuNotionOptions = {
+export type NugoOptions = {
   notionToken: string;
   rootPage: string;
   locales: string[];
@@ -49,8 +49,8 @@ const counts = {
   skipped_because_status: 0,
 };
 
-export async function notionPull(options: DocuNotionOptions): Promise<void> {
-  // It's helpful when troubleshooting CI secrets and environment variables to see what options actually made it to docu-notion.
+export async function notionPull(options: NugoOptions): Promise<void> {
+  // It's helpful when troubleshooting CI secrets and environment variables to see what options actually made it to nugo.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   const optionsForLogging = { ...options };
   // Just show the first few letters of the notion token, which start with "secret" anyhow.
@@ -89,7 +89,7 @@ export async function notionPull(options: DocuNotionOptions): Promise<void> {
     });
   } catch (e: any) {
     error(
-      `docu-notion could not retrieve the root page from Notion. \r\na) Check that the root page id really is "${
+      `nugo could not retrieve the root page from Notion. \r\na) Check that the root page id really is "${
         options.rootPage
       }".\r\nb) Check that your Notion API token (the "Integration Secret") is correct. It starts with "${
         optionsForLogging.notionToken
@@ -119,11 +119,11 @@ export async function notionPull(options: DocuNotionOptions): Promise<void> {
 }
 
 async function outputPages(
-  options: DocuNotionOptions,
-  config: IDocuNotionConfig,
+  options: NugoOptions,
+  config: INugoConfig,
   pages: Array<NotionPage>
 ) {
-  const context: IDocuNotionContext = {
+  const context: INugoContext = {
     config: config,
     layoutStrategy: layoutStrategy,
     options: options,
@@ -177,7 +177,7 @@ async function outputPages(
 // then step through this list creating the files we need, and, crucially, be
 // able to figure out what the url will be for any links between content pages.
 async function getPagesRecursively(
-  options: DocuNotionOptions,
+  options: NugoOptions,
   incomingContext: string,
   parentId: string,
   pageId: string,
@@ -453,7 +453,7 @@ async function getBlockChildren(id: string): Promise<NotionBlock[]> {
 
   if (overallResult?.results?.some(b => !isFullBlock(b))) {
     error(
-      `The Notion API returned some blocks that were not full blocks. docu-notion does not handle this yet. Please report it.`
+      `The Notion API returned some blocks that were not full blocks. nugo does not handle this yet. Please report it.`
     );
     exit(1);
   }
@@ -469,7 +469,7 @@ export function initNotionClient(notionToken: string): Client {
   return notionClient;
 }
 async function fromPageId(
-  options: DocuNotionOptions,
+  options: NugoOptions,
   context: string,
   parentId: string,
   pageId: string,

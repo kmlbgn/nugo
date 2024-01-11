@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { GetPageResponse } from "@notionhq/client/build/src/api-endpoints";
-import { parseLinkId } from "./plugins/internalLinks";
+import { parseLinkId } from "./plugins/default/internalLinks";
 import { ListBlockChildrenResponseResults } from "notion-to-md/build/types";
 
 // Notion has 2 kinds of pages: a normal one which is just content, and what I'm calling a "database page", which has whatever properties you put on it.
-// docu-notion supports the later via links from outline pages. That is, you put the database pages in a database, then separately, in the outline, you
+// nugo supports the later via links from outline pages. That is, you put the database pages in a database, then separately, in the outline, you
 // create pages for each node of the outline and then add links from those to the database pages. In this way, we get the benefits of database
 // pages (metadata, workflow, etc) and also normal pages (order, position in the outline).
 export enum PageType {

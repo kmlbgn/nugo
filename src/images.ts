@@ -5,7 +5,7 @@ import * as Path from "path";
 import { makeImagePersistencePlan } from "./MakeImagePersistencePlan";
 import { warning, logDebug, verbose, info } from "./log";
 import { ListBlockChildrenResponseResult } from "notion-to-md/build/types";
-import { IDocuNotionContext, IPlugin } from "./plugins/pluginTypes";
+import { INugoContext, IPlugin } from "./plugins/pluginTypes";
 
 // We several things here:
 // 1) copy images locally instead of leaving them in Notion
@@ -73,7 +73,7 @@ export const standardImageTransformer: IPlugin = {
       // we have to set this one up for each page because we need to
       // give it two extra parameters that are context for each page
       getStringFromBlock: (
-        context: IDocuNotionContext,
+        context: INugoContext,
         block: ListBlockChildrenResponseResult
       ) =>
         markdownToMDImageTransformer(
